@@ -1,0 +1,32 @@
+html, body, th, td {
+	font-family: "open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 15px;
+	color: #000;
+}
+
+/* form style */
+
+.x_pre {
+    float: left;
+    margin: 7px;
+    clear: both;
+}
+
+.x_text {
+    float: left;
+    width: 100px;
+    height: 20px;
+    border: 1px solid #000;
+}
+
+.xpost {
+    margin: 5px;
+}
+
+.xpost:hover {
+    border: 1px solid #f00;
+}
+
+.xpost:focus {
+    border: 1px solid #0f0;
+}
