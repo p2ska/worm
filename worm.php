@@ -1,14 +1,11 @@
 <?php
 
-//session_name("worm");
-//session_start();
-
 if (!isset($_GET["worm"]))
     return false;
 
-require_once("c:/xampp/security/worm/_connector.php");
-require_once("classes/_translations.php");
-require_once("classes/_worm_ext.php");
+require_once "c:/xampp/security/worm/_connector.php";
+require_once "classes/_translations.php";
+require_once "classes/_worm_ext.php";
 
 $worm = new WORM_EXT($_GET["worm"]);
 

@@ -7,7 +7,7 @@
 <title>worm</title>
 </head>
 <body>
-<div id="test" class="worm" data-template="test:ABC001"></div>
+<div id="test" class="worm" data-worm="test:ABC001"></div>
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/worm.js"></script>
 </body>

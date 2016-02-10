@@ -2,7 +2,7 @@
 
 // andmebaasi klass
 
-class P_DATABASE {
+class W_DATABASE {
 	var $connection, $host, $database, $charset, $collation, $query, $result, $error_msg, $error, $rows, $insert_id;
 
 	function connect($host = false, $database = false, $username = false, $password = false, $charset = false, $collation = false) {
