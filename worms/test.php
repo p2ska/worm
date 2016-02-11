@@ -1,17 +1,30 @@
 <?php
 
-$fields = [
-    "f1" => [ "field" => "field1", "title" => "Field1", "type" => "text" ],
-    "f2" => [ "field" => "field2", "title" => "Field2", "type" => "text" ],
-    "f3" => [ "field" => "field3", "title" => "Field3", "type" => "text" ],
-    "f4" => [ "field" => "field4", "title" => "Field4", "type" => "text" ],
-    "f5" => [ "field" => "field5", "title" => "Field5", "type" => "text" ],
+$this->table = "test";
+$this->fields = [
+    "f1" => [ "field" => "field1", "title" => "Eesnimi", "type" => "text", "value" => "initial" ],
+    "f2" => [ "field" => "field2", "title" => "Perenimi", "type" => "text" ],
+    "f3" => [ "field" => "field3", "title" => "Amet", "type" => "text" ],
+    "f4" => [ "field" => "field4", "title" => "Osakond", "type" => "text" ],
+    "f5" => [ "field" => "field5", "title" => "Telefon", "type" => "text" ],
 ];
+
+// id:      [uid] + "_" + [field]
+// descr:   [uid] + "_" + [field] + "_descr"
 
 ?>
 <div class="w_group">
-    <div class="w_descr">[f1:title]</div><input type="[f1:type]" id="[f1:id]" class="w_text" value="[f1:value]">
+    <div id="[f1:descr]" class="w_descr">[f1:title]</div><div id="[f1:id]" class="w_content">[f1:value]</div>
 </div>
 <div class="w_group">
-    <div class="w_descr">[f2:title]</div><input type="[f2:type]" id="[f2:id]" class="w_text" value="[f2:value]">
+    <div id="[f2:descr]" class="w_descr">[f2:title]</div><div id="[f2:id]" class="w_content">[f2:value]</div>
+</div>
+<div class="w_group">
+    <div id="[f3:descr]" class="w_descr">[f3:title]</div><div id="[f3:id]" class="w_content">[f3:value]</div>
+</div>
+<div class="w_group">
+    <div id="[f4:descr]" class="w_descr">[f4:title]</div><div id="[f4:id]" class="w_content">[f4:value]</div>
+</div>
+<div class="w_group">
+    <div id="[f5:descr]" class="w_descr">[f5:title]</div><div id="[f5:id]" class="w_content">[f5:value]</div>
 </div>

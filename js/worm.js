@@ -3,6 +3,7 @@ var worm_url = "worm.php";
 (function($) {
     $.fn.worm = function(targets) {
         var prefix      = "#worm_",
+            last_save   = false,
             debug       = false,
             settings    = [];
 
@@ -23,6 +24,49 @@ var worm_url = "worm.php";
 
             output(worm);
         });
+
+        // kuva vormielement
+
+        $(document).on("click", ".w_value", function() {
+            var value_id = "#" + $(this).prop("id");
+            var id = value_id.split("_");
+            var field_id = id[0] + "_" + id[1] + "_field";
+            var element_id = id[0] + "_" + id[1] + "_element";
+
+            $(value_id).hide();
+            $(field_id).show();
+            $(element_id).focus();
+            $(element_id)[0].setSelectionRange(10000, 10000);
+        });
+
+        // salvesta vormielement fookuse kadumise korral
+
+        $(document).on("focusout", ".w_element", function() {
+            if (last_save && (ct - last_save) < 250)
+                save_element($(this));
+        });
+
+        $(document).on("keyup", ".w_element", function(e) {
+            if (e.keyCode == 13) {
+                save_element($(this));
+            }
+        });
+
+        function save_element(el) {
+            var element_id = "#" + $(el).prop("id");
+            var id = element_id.split("_");
+            var field_id = id[0] + "_" + id[1] + "_field";
+            var value_id = id[0] + "_" + id[1] + "_value";
+
+            $(field_id).hide();
+            $(value_id).html("").show();
+
+            $.ajax({ url: worm_url, data: { worm: { save: element_id, content: $(element_id).val() } } }).done(function(result) {
+                $(value_id).html(result);
+                $(element_id).val("");
+                last_save = Date.now();
+            });
+        }
 
         // kasutaja andmed
 

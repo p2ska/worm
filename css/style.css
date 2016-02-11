@@ -4,27 +4,59 @@ html, body, th, td {
 	color: #000;
 }
 
+/* paigutus */
+
 .w_group {
     margin: 10px;
 }
 
 .w_descr {
     float: left;
+    width: 100px;
     margin: 7px;
     clear: both;
 }
 
-.w_text {
+.w_content {
     float: left;
-    width: 100px;
-    height: 20px;
-    border: 1px solid #000;
 }
 
-.w_text:hover {
+.w_value > u {
+    cursor: pointer;
+    color: #0af;
+    text-decoration: none;
+    border-bottom: 1px dashed #0af;
+}
+
+.w_value > u:hover {
+    color: #08d;
+    border-bottom: 1px solid #08d;
+}
+
+.w_field {
+    display: none;
+}
+
+.w_failed {
+    color: #f00;
+    border-color: #f00;
+}
+
+.w_empty {
+    color: #a00;
+}
+
+/* vormi stiilid */
+
+.w_element {
+    padding: 5px;
+    border: 1px solid #fff;
+}
+
+.w_element:hover {
     border: 1px solid #0ff;
 }
 
-.w_text:focus {
+.w_element:focus {
     border: 1px solid #0ff;
 }
