@@ -2,57 +2,59 @@ var worm_url = "worm.php";
 
 (function($) {
     $.fn.worm = function(targets) {
-        var prefix      = "#worm_",
-            last_save   = false,
-            debug       = false,
-            settings    = [];
+        var last_save   = false,
+            debug       = false;
 
         if (targets === undefined)
             targets = ".worm";
 
 		$(targets).each(function() {
             var worm = $(this).prop("id");
+            var data = user_data($(this).data());
 
-            settings[worm] = {
-                target:		$(this).prop("id"),
-                class:		$(this).prop("class"),
-                data:		user_data($(this).data()),
-                url:		worm_url
-            }
+            output(worm, data);
 
-            // vormi kuvamine
+            // kuva vormielement
 
-            output(worm);
+            $("#" + worm).on("click", ".w_value", function() {
+                var value_id = "#" + $(this).prop("id");
+                var id = value_id.split("_");
+                var field_id = id[0] + "_" + id[1] + "_field";
+                var element_id = id[0] + "_" + id[1] + "_element";
+
+                $(value_id).hide();
+                $(field_id).show();
+                $(element_id).focus();
+                $(element_id)[0].setSelectionRange(10000, 10000);
+            });
+
+            // salvesta vormielement fookuse kadumise korral
+
+            $("#" + worm).on("focusout", ".w_element", function() {
+                //if (last_save && (Date.now() - last_save) < 250)
+                    save_element(worm, data, $(this));
+            });
+
+            // salvesta vormielement enteri korral (va textarea?)
+
+            /*$("#" + worm).on("keyup", ".w_element", function(e) {
+                if (e.keyCode == 13) {
+                    save_element(worm, data, $(this));
+                }
+            });*/
         });
 
-        // kuva vormielement
+        // kuva vorm
 
-        $(document).on("click", ".w_value", function() {
-            var value_id = "#" + $(this).prop("id");
-            var id = value_id.split("_");
-            var field_id = id[0] + "_" + id[1] + "_field";
-            var element_id = id[0] + "_" + id[1] + "_element";
+        function output(worm, data) {
+            $.ajax({ url: worm_url, data: { worm: { target: worm, data: data } } }).done(function(content) {
+                $("#" + worm).html(content);
+            });
+        }
 
-            $(value_id).hide();
-            $(field_id).show();
-            $(element_id).focus();
-            $(element_id)[0].setSelectionRange(10000, 10000);
-        });
+        // salvesta element
 
-        // salvesta vormielement fookuse kadumise korral
-
-        $(document).on("focusout", ".w_element", function() {
-            if (last_save && (ct - last_save) < 250)
-                save_element($(this));
-        });
-
-        $(document).on("keyup", ".w_element", function(e) {
-            if (e.keyCode == 13) {
-                save_element($(this));
-            }
-        });
-
-        function save_element(el) {
+        function save_element(worm, data, el) {
             var element_id = "#" + $(el).prop("id");
             var id = element_id.split("_");
             var field_id = id[0] + "_" + id[1] + "_field";
@@ -61,9 +63,9 @@ var worm_url = "worm.php";
             $(field_id).hide();
             $(value_id).html("").show();
 
-            $.ajax({ url: worm_url, data: { worm: { save: element_id, content: $(element_id).val() } } }).done(function(result) {
+            $.ajax({ url: worm_url, data: { worm: { target: worm, data: data, save: element_id, content: $(element_id).val() } } }).done(function(result) {
+                console.log(result);
                 $(value_id).html(result);
-                $(element_id).val("");
                 last_save = Date.now();
             });
         }
@@ -80,21 +82,6 @@ var worm_url = "worm.php";
             }
 
             return udata;
-        }
-
-        // kuva vorm
-
-        function output(worm) {
-            $.ajax({ url: settings[worm].url, data: { worm: settings[worm] } }).done(function(content) {
-                $("#" + settings[worm].target).html(content);
-
-				//settings[ptable].page = $(prefix + settings[ptable].target).data("page");
-
-                /*
-                clog(worm, "page       = " + settings[ptable].page, "updated");
-                clog("autoupdate = " + settings[ptable].autoupdate, ";");
-                */
-            });
         }
 
         // korralikum logi formaatimine

@@ -35,15 +35,14 @@ define("W_AWESOME_R",	"}}");
 class WORM {
     // kõik parameetrid (nb! need default'id kirjutatakse üle tabeli kirjeldusfaili ja ka worm.js poolt tulevate väärtustega üle)
 
-    var
-    $content, $db, $translations, $l, $target, $uid, $template, $template_file,
-    $database, $host, $username, $password, $charset, $collation, $table,
-    $data, $fields,
-    $debug			= true;         // debug reziim
+    var $content, $db, $translations, $l, $target, $uid, $template, $partial_parse,
+        $database, $host, $username, $password, $charset, $collation, $table,
+        $data, $fields,
+        $debug	= true;         // debug reziim
 
     // initsialiseeri kõik js poolt määratud muutujad
 
-    function worm($init, $source = false, $lang = false) {
+    function worm($data, $source = false, $lang = false) {
         // kui tabeli kirjelduses on märgitud uus ühendus
 
         if ($this->host && $this->database && $this->username && $this->password) {
@@ -63,19 +62,31 @@ class WORM {
             $this->db->connect(DB_HOST, DB_NAME, DB_USER, DB_PASS, DB_CHARSET, DB_COLLATION);
         }
 
-        // elemendi salvestamine
-
-        if (isset($init["save"]))
-            return $this->save_element($init);
-
-        // kas target on ikka olemas
-
-		if (!isset($init["target"]))
+        if (!$this->init($data, $lang))
             return false;
 
-		// vormi id
+        // hangi template
 
-        $this->target = $this->safe($init["target"]);
+        $this->process_template();
+
+        // elemendi salvestamine
+
+        if (isset($data["save"]))
+            return $this->save_element($data);
+    }
+
+    // init
+
+    function init($data, $lang) {
+        // kas vajalik info on ikka olemas
+
+		if (!isset($data["target"]) || !isset($data["data"]))
+            return false;
+
+        // data[] muutuja edastamiseks vormi kirjeldusele
+
+        $this->target = $this->safe($data["target"]);
+        $this->data = $this->safe($data["data"]);
 
         // kui pole väliseid tõlkeid juba, siis lae tabeli tõlkefailist;
         // kui translations klassi ka pole, noh siis polegi tõlkeid
@@ -88,69 +99,47 @@ class WORM {
         else
             $this->l = $lang;
 
-        // data[] muutuja edastamiseks vormi kirjeldusele
-
-        if (isset($init["data"]) && $init["data"])
-            $this->data = $this->safe($init["data"]);
-
-        // kirjuta klassi default'id tabelikirjelduse omadega üle
-
-        if (!$this->init())
-            return false;
-
-        // kirjuta default'id JS omadega üle (puhasta input)
-
-		foreach ($init as $key => $val)
-            $this->{ $key } = $this->safe($val);
-
-        // seadista vorm
-
-        $this->prepare_worm();
-    }
-
-    // init
-
-    function init() {
-        // et vormikirjeldustes oleks veidi mugavam ja lühem keelestringe välja kutsuda
-
-        $l = &$this->l;
-
-        // kas on vajalik info olemas?
-
-        if (!isset($this->data["worm"]))
-            return false;
-
         // hangi vormi template ja uid
 
-        list($this->template, $this->uid) = explode(":", $this->data["worm"]);
-
-        // kas template ja uid on olemas
-
-        if (!$this->template || !$this->uid)
-            return false;
+        if (isset($this->data["worm"]) && substr_count($this->data["worm"], W_SEP))
+            list($this->template, $this->uid) = explode(W_SEP, $this->data["worm"]);
         else
-            return true;
+            return false;
+
+        if (isset($data["save"]))
+            $this->partial_parse = true;
+
+        // kirjuta default'id JS omadega üle (ja puhasta input)
+
+		foreach ($data as $key => $val)
+            $this->{ $key } = $this->safe($val);
+
+        return true;
     }
 
     // valmista vorm ette
 
-    function prepare_worm() {
+    function process_template() {
         // tabeli kirjelduse template
 
-        $this->template_file = WORMS. W_SL. $this->template. ".php";
+        $template_file = WORMS. W_SL. $this->template. ".php";
 
         // kas template eksisteerib?
 
-        if (!file_exists($this->template_file))
+        if (!file_exists($template_file))
             return false;
 
-        // lae template sisu stringi
+        // et vormikirjeldustes oleks veidi mugavam ja lühem keelestringe välja kutsuda
+
+        $l = &$this->l;
+
+        // lae template sisu
 
         ob_start();
 
-        require_once $this->template_file;
+        require_once $template_file;
 
-        // protsessi template
+        // kui pole template kuvamisega tegu (väärtuse salvestamine/lugemine/valideerimine), siis ära parsi edasi esimesest php' blokist
 
         $this->content .= $this->replace_tags(ob_get_clean());
     }
@@ -217,15 +206,20 @@ class WORM {
                     elseif ($value)
                         $value = "<u>". $value. "</u>";
                     else
-                        $value = "<u class=\"w_empty\">[tühi]</u>"; // ". $this->l->empty. "
+                        $value = "<u class=\"w_empty\">- väärtustamata -</u>"; // ". $this->l->empty. "
 
                     // paiguta väärtus div'i sisse ja lisa vormielement
 
                     $value = "<div id=\"". $id. W_US. "value\" class=\"w_value\">". $value. "</div>";
                     $value.= "<div id=\"". $id. W_US. "field\" class=\"w_field\">". $this->element($this->fields[$field]). "</div>";
-                } // tavalise väljamuutuja asendamine
+                } // teiste väljamuutujate asendamine
                 elseif (isset($this->fields[$field][$key])) {
                     $value = $this->fields[$field][$key];
+
+                    // kui on kohustuslik väli, siis '*' kirjeldusele
+
+                    if ($key == "title" && isset($this->fields[$field]["required"]) && $this->fields[$field]["required"])
+                        $value .= "<span class=\"w_required\">*</span>";
                 }
             }
 
@@ -281,11 +275,9 @@ class WORM {
         list($uid, $field) = explode("_", substr($element["save"], 1));
 
         $this->uid = $uid;
-        $this->table = "test";
-
         $this->set_value($field, $element["content"]);
 
-        echo "<u>". $this->get_value($field). "</u>";
+        //echo "<u>". $this->get_value($field). "</u>";
     }
 
     // tee JS tulev sisend turvaliseks

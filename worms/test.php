@@ -1,16 +1,20 @@
 <?php
 
 $this->table = "test";
+
 $this->fields = [
-    "f1" => [ "field" => "field1", "title" => "Eesnimi", "type" => "text", "value" => "initial" ],
-    "f2" => [ "field" => "field2", "title" => "Perenimi", "type" => "text" ],
-    "f3" => [ "field" => "field3", "title" => "Amet", "type" => "text" ],
-    "f4" => [ "field" => "field4", "title" => "Osakond", "type" => "text" ],
-    "f5" => [ "field" => "field5", "title" => "Telefon", "type" => "text" ],
+    "f1" => [ "field" => "field1", "title" => "Eesnimi:", "type" => "text", "value" => "initial" ],
+    "f2" => [ "field" => "field2", "title" => "Perenimi:", "type" => "text", "required" => true ],
+    "f3" => [ "field" => "field3", "title" => "Amet:", "type" => "text" ],
+    "f4" => [ "field" => "field4", "title" => "Osakond:", "type" => "text" ],
+    "f5" => [ "field" => "field5", "title" => "Telefon:", "type" => "text" ],
 ];
 
 // id:      [uid] + "_" + [field]
 // descr:   [uid] + "_" + [field] + "_descr"
+
+if ($this->partial_parse)
+    return;
 
 ?>
 <div class="w_group">
