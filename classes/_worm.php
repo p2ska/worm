@@ -71,8 +71,8 @@ class WORM {
 
         // elemendi salvestamine
 
-        if (isset($data["save"]))
-            return $this->save_element($data);
+        if (isset($data["save"]) && $data["save"])
+            $this->save_element($data);
     }
 
     // init
@@ -106,7 +106,9 @@ class WORM {
         else
             return false;
 
-        if (isset($data["save"]))
+        // kui on elemendi salvestamise või lugemise või kontrollimisega tegu, siis märgi see ära, et ei kuvataks template vormiosa
+
+        if (isset($data["save"]) && $data["save"])
             $this->partial_parse = true;
 
         // kirjuta default'id JS omadega üle (ja puhasta input)
@@ -186,8 +188,8 @@ class WORM {
 
             // kas korrektselt kirjeldatud vormielement eksisteerib?
 
-            if ($field && $key && isset($this->fields[$field]) && isset($this->fields[$field]["field"])) {
-                $id = $this->uid. W_US. $this->fields[$field]["field"];
+            if ($field && $key && isset($this->fields[$field])) {
+                $id = $this->uid. W_US. $field;
                 // lisa välja id
 
                 if ($key == "id") {
@@ -197,7 +199,7 @@ class WORM {
                     $value = $id. W_US. "descr";
                 } // kui on väärtuse printimisega tegu, siis vaata kas on juba tabelis väärtus olemas
                 elseif ($key == "value") {
-                    $value = $this->get_value($this->fields[$field]["field"]);
+                    $value = $this->get_value($field);
 
                     // kui tulemust tabelist ei leitud, siis lisa kirjelduses olev default (kui on seatud)
 
@@ -211,7 +213,7 @@ class WORM {
                     // paiguta väärtus div'i sisse ja lisa vormielement
 
                     $value = "<div id=\"". $id. W_US. "value\" class=\"w_value\">". $value. "</div>";
-                    $value.= "<div id=\"". $id. W_US. "field\" class=\"w_field\">". $this->element($this->fields[$field]). "</div>";
+                    $value.= "<div id=\"". $id. W_US. "field\" class=\"w_field\">". $this->element($field). "</div>";
                 } // teiste väljamuutujate asendamine
                 elseif (isset($this->fields[$field][$key])) {
                     $value = $this->fields[$field][$key];
@@ -259,10 +261,10 @@ class WORM {
     function element($field) {
         $el = W_VOID;
 
-        $id = $this->uid. W_US. $field["field"]. W_US. "element";
-        $value = $this->get_value($field["field"]);
+        $id = $this->uid. W_US. $field. W_US. "element";
+        $value = $this->get_value($field);
 
-        if ($field["type"] == "text") {
+        if ($this->fields[$field]["type"] == "text") {
             $el = "<input id=\"". $id. "\" type=\"text\" value=\"". $value. "\" class=\"w_element\">";
         }
 
@@ -274,10 +276,14 @@ class WORM {
     function save_element($element) {
         list($uid, $field) = explode("_", substr($element["save"], 1));
 
-        $this->uid = $uid;
-        $this->set_value($field, $element["content"]);
+        // kontrolli, kas selle elemendi puhul on soovitud meetodiga salvestamine lubatud
 
-        //echo "<u>". $this->get_value($field). "</u>";
+        if (!isset($this->fields[$field]["save"]) || in_array($element["method"], $this->fields[$field]["save"]))
+            $this->set_value($field, $element["content"]);
+
+        // tagasta väärtus
+
+        $this->content = "<u>". $this->get_value($field). "</u>";
     }
 
     // tee JS tulev sisend turvaliseks

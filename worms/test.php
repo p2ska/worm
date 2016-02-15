@@ -3,11 +3,11 @@
 $this->table = "test";
 
 $this->fields = [
-    "f1" => [ "field" => "field1", "title" => "Eesnimi:", "type" => "text", "value" => "initial" ],
-    "f2" => [ "field" => "field2", "title" => "Perenimi:", "type" => "text", "required" => true ],
-    "f3" => [ "field" => "field3", "title" => "Amet:", "type" => "text" ],
-    "f4" => [ "field" => "field4", "title" => "Osakond:", "type" => "text" ],
-    "f5" => [ "field" => "field5", "title" => "Telefon:", "type" => "text" ],
+    "field1" => [ "title" => "Eesnimi:", "type" => "text", "value" => "initial", "save" => [ "enter", "blur", "change" ] ],
+    "field2" => [ "title" => "Perenimi:", "type" => "text", "required" => true, "save" => [ "enter" ] ],
+    "field3" => [ "title" => "Amet:", "type" => "text" ],
+    "field4" => [ "title" => "Osakond:", "type" => "text" ],
+    "field5" => [ "title" => "Telefon:", "type" => "text" ],
 ];
 
 // id:      [uid] + "_" + [field]
@@ -18,17 +18,17 @@ if ($this->partial_parse)
 
 ?>
 <div class="w_group">
-    <div id="[f1:descr]" class="w_descr">[f1:title]</div><div id="[f1:id]" class="w_content">[f1:value]</div>
+    <div id="[field1:descr]" class="w_descr">[field1:title]</div><div id="[field1:id]" class="w_content">[field1:value]</div>
 </div>
 <div class="w_group">
-    <div id="[f2:descr]" class="w_descr">[f2:title]</div><div id="[f2:id]" class="w_content">[f2:value]</div>
+    <div id="[field2:descr]" class="w_descr">[field2:title]</div><div id="[field2:id]" class="w_content">[field2:value]</div>
 </div>
 <div class="w_group">
-    <div id="[f3:descr]" class="w_descr">[f3:title]</div><div id="[f3:id]" class="w_content">[f3:value]</div>
+    <div id="[field3:descr]" class="w_descr">[field3:title]</div><div id="[field3:id]" class="w_content">[field3:value]</div>
 </div>
 <div class="w_group">
-    <div id="[f4:descr]" class="w_descr">[f4:title]</div><div id="[f4:id]" class="w_content">[f4:value]</div>
+    <div id="[field4:descr]" class="w_descr">[field4:title]</div><div id="[field4:id]" class="w_content">[field4:value]</div>
 </div>
 <div class="w_group">
-    <div id="[f5:descr]" class="w_descr">[f5:title]</div><div id="[f5:id]" class="w_content">[f5:value]</div>
+    <div id="[field5:descr]" class="w_descr">[field5:title]</div><div id="[field5:id]" class="w_content">[field5:value]</div>
 </div>

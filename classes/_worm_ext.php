@@ -2,8 +2,8 @@
 
 define("WORMS", "c:/xampp/htdocs/worm/worms");
 
-require_once("_db.php");
-require_once("_worm.php");
+require_once "_db.php";
+require_once "_worm.php";
 
 // põhiklassi extension, võimaldamaks päringust saadud väärtusi edasi töödelda
 

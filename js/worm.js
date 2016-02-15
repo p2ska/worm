@@ -2,8 +2,8 @@ var worm_url = "worm.php";
 
 (function($) {
     $.fn.worm = function(targets) {
-        var last_save   = false,
-            debug       = false;
+        var last_save = false,
+            debug = false;
 
         if (targets === undefined)
             targets = ".worm";
@@ -31,17 +31,30 @@ var worm_url = "worm.php";
             // salvesta vormielement fookuse kadumise korral
 
             $("#" + worm).on("focusout", ".w_element", function() {
-                //if (last_save && (Date.now() - last_save) < 250)
-                    save_element(worm, data, $(this));
+                save_element(worm, data, $(this), "blur");
+
+                console.log("saved: focusout");
             });
 
-            // salvesta vormielement enteri korral (va textarea?)
+            // salvesta vormielement väärtuse muutumise korral
 
-            /*$("#" + worm).on("keyup", ".w_element", function(e) {
+            $("#" + worm).on("change", ".w_element", function() {
+                save_element(worm, data, $(this), "change");
+
+                console.log("saved: change");
+            });
+
+            // salvesta vormielement enteri korral (va textarea?) //// ilmselt seda pole siiski vaja kui "on change" on olemas juba
+
+            /*
+            $("#" + worm).on("keyup", ".w_element", function(e) {
                 if (e.keyCode == 13) {
                     save_element(worm, data, $(this));
+
+                    console.log("saved: enter");
                 }
-            });*/
+            });
+            */
         });
 
         // kuva vorm
@@ -54,20 +67,28 @@ var worm_url = "worm.php";
 
         // salvesta element
 
-        function save_element(worm, data, el) {
+        function save_element(worm, data, el, method) {
             var element_id = "#" + $(el).prop("id");
             var id = element_id.split("_");
             var field_id = id[0] + "_" + id[1] + "_field";
             var value_id = id[0] + "_" + id[1] + "_value";
 
             $(field_id).hide();
-            $(value_id).html("").show();
 
-            $.ajax({ url: worm_url, data: { worm: { target: worm, data: data, save: element_id, content: $(element_id).val() } } }).done(function(result) {
-                console.log(result);
-                $(value_id).html(result);
-                last_save = Date.now();
-            });
+            if (last_save && (Date.now() - last_save) < 250) {
+                $(value_id).show();
+
+                console.log("not saved: last save was less than 250ms ago");
+            }
+            else {
+                $(value_id).html("").show();
+
+                $.ajax({ url: worm_url, data: { worm: { target: worm, data: data, save: element_id, method: method, content: $(element_id).val() } } }).done(function(result) {
+                    $(value_id).html(result);
+
+                    last_save = Date.now();
+                });
+            }
         }
 
         // kasutaja andmed
