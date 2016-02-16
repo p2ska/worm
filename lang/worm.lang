@@ -1,36 +1,3 @@
 // wormide tõlked
 
-txt_requests			=> Tellimused :: Requests ;;
-txt_prev				=> Eelmine :: Previous ;;
-txt_next				=> Järgmine :: Next ;;
-txt_save				=> Salvesta :: Save ;;
-txt_close				=> Sulge :: Close ;;
-txt_found				=> Leitud kirjeid :: Matches found ;;
-txt_notfound			=> Ei leidnud midagi! :: Nothing found! ;;
-txt_search				=> Otsi :: Search ;;
-txt_field_search		=> Välja piires otsing :: Field limited search ;;
-txt_minimize_btn		=> Keri tabel kokku :: Roll table up ;;
-txt_maximize_btn		=> Suurenda üle ekraani :: Fullscreen view ;;
-txt_pref				=> {{cogs}} Tabeli seadistused :: {{cogs}} Table preferences ;;
-txt_pref_btn			=> Tabeli seadistused :: Table preferences ;;
-txt_pagesize			=> Kirjete arv lehel :: Page size ;;
-txt_autoupdate			=> Automaatne uuendus :: Automatic updates ;;
-txt_records				=> kirjet :: rows ;;
-txt_all_records			=> Kõik kirjed :: All rows ;;
-txt_search_ph           => Otsi :: Search ;;
-
-txt_status_1			=> Koostamisel :: Scrambling ;;
-txt_status_2			=> Lahendamisel :: Solving ;;
-txt_status_3			=> Lõpetatud :: Closed ;;
-txt_status_4			=> Tühistatud :: Discarded ;;
-
-txt_prio_1              => Madal :: Low ;;
-txt_prio_2              => Keskmine :: Medium ;;
-txt_prio_3              => Kõrge :: High ;;
-txt_prio_4              => Kriitiline :: Critical ;;
-
-txt_request				=> Tellimus :: Request ;;
-txt_requester			=> Tellija :: Requester ;;
-txt_subject				=> Teema :: Subject ;;
-txt_regdate				=> Kuupäev :: Reg. date ;;
-txt_joined				=> Liidetud :: Joined ;;
+txt_empty				=> - tühi - :: - empty - ;;

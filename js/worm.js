@@ -2,7 +2,8 @@ var worm_url = "worm.php";
 
 (function($) {
     $.fn.worm = function(targets) {
-        var last_save = false,
+        var current_element, value_id, element_id, field_id,
+			last_save = false,
             debug = false;
 
         if (targets === undefined)
@@ -17,48 +18,68 @@ var worm_url = "worm.php";
             // kuva vormielement
 
             $("#" + worm).on("click", ".w_value", function() {
-                var value_id = "#" + $(this).prop("id");
-                var id = value_id.split("_");
-                var field_id = id[0] + "_" + id[1] + "_field";
-                var element_id = id[0] + "_" + id[1] + "_element";
+				get_id($(this));
 
                 $(value_id).hide();
 
                 load_element(worm, data, $(this));
 
-                $(field_id).show();
+				$(field_id).show();
                 $(element_id).focus();
-                //$(element_id)[0].setSelectionRange(10000, 10000);
+
+				if ($(element_id)[0])
+                	$(element_id)[0].setSelectionRange(10000, 10000);
             });
 
-            // salvesta vormielement fookuse kadumise korral
+            // kustuta elemendi sisu ristile klikkimise korral
 
-            $("#" + worm).on("focusout", ".w_element", function() {
+            $("#" + worm).on("click", ".w_erase", function() {
+				get_id($(this).closest("div"));
+
+				$(element_id).val("").focus();
+            });
+
+			// salvesta vormielement dialoogi korral
+
+            $("#" + worm).on("click", ".w_save", function() {
+				get_id($(this).closest("div"));
+
+				save_element(worm, data, current_element, "dialog");
+            });
+
+            // ära salvesta vormielementi dialoogi korral
+
+            $("#" + worm).on("click", ".w_cancel", function() {
+				get_id($(this).closest("div"));
+
+				$(field_id).hide();
+				$(value_id).show();
+            });
+
+			// salvesta vormielement fookuse kadumise korral
+
+            $("#" + worm).on("focusout", ".w_blur", function() {
                 save_element(worm, data, $(this), "blur");
-
-                console.log("saved: focusout");
             });
 
             // salvesta vormielement väärtuse muutumise korral
 
-            $("#" + worm).on("change", ".w_element", function() {
+            $("#" + worm).on("change", ".w_change", function() {
                 save_element(worm, data, $(this), "change");
-
-                console.log("saved: change");
             });
-
-            // salvesta vormielement enteri korral (va textarea?) //// ilmselt seda pole siiski vaja kui "on change" on olemas juba
-
-            /*
-            $("#" + worm).on("keyup", ".w_element", function(e) {
-                if (e.keyCode == 13) {
-                    save_element(worm, data, $(this));
-
-                    console.log("saved: enter");
-                }
-            });
-            */
         });
+
+		// hangi id'd
+
+		function get_id(element) {
+            var id = element.prop("id").split("-");
+
+			current_element = element;
+
+			value_id = "#" + id[0] + "-" + id[1] + "-value";
+            field_id = "#" + id[0] + "-" + id[1] + "-field";
+            element_id = "#" + id[0] + "-" + id[1] + "-element";
+		}
 
         // kuva vorm
 
@@ -70,13 +91,10 @@ var worm_url = "worm.php";
 
         // lae element
 
-        function load_element(worm, data, el) {
-            var element_id = "#" + $(el).prop("id");
-            var id = element_id.split("_");
-            var field_id = id[0] + "_" + id[1] + "_field";
-            var value_id = id[0] + "_" + id[1] + "_value";
+        function load_element(worm, data, element) {
+			get_id(element);
 
-            $.ajax({
+			$.ajax({
                 url: worm_url,
                 data: {
                     worm: {
@@ -87,17 +105,14 @@ var worm_url = "worm.php";
                     }
                 }
             }).done(function(result) {
-                $(field_id).val(result);
+                $(element_id).val(result);
             });
         }
 
         // salvesta element
 
-        function save_element(worm, data, el, method) {
-            var element_id = "#" + $(el).prop("id");
-            var id = element_id.split("_");
-            var field_id = id[0] + "_" + id[1] + "_field";
-            var value_id = id[0] + "_" + id[1] + "_value";
+        function save_element(worm, data, element, method) {
+			get_id(element);
 
             $(field_id).hide();
 
@@ -109,6 +124,16 @@ var worm_url = "worm.php";
             else {
                 $(value_id).html("").show();
 
+				var content;
+				var type = $(element).attr("type");
+
+				if (type == "radio")
+					content = $("input[name=" + element_id.substr(1) + "]:checked").val();
+				else if (type == "checkbox")
+					content = $("input[name='" + element_id.substr(1) + "[]']:checked").map(function() { return this.value }).get();
+				else
+					content = $(element_id).val();
+
                 $.ajax({
                     url: worm_url,
                     data: {
@@ -118,7 +143,7 @@ var worm_url = "worm.php";
                             action: "save",
                             method: method,
                             element: element_id,
-                            content: $(element_id).val()
+                            content: content
                         }
                     }
                 }).done(function(result) {

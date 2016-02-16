@@ -2,31 +2,13 @@
 
 // [worm]; Andres Päsoke
 
-define("W_ALLOWED",		"/[^\p{L}\p{N}\s\:\.@_-]/u");	// millised sümbolid on lubatud sisendina
+define("W_ALLOWED",		"/[^\p{L}\p{N}\s\:\.@_-]/u");
 define("W_DOTS",		"/\.+/");
-define("W_ALL",			"*");
-define("W_ANY",			"%");
-define("W_Q",			"?");
-define("W_LN",			"\n");
-define("W_SL",			"/");
 define("W_DOT",			".");
 define("W_VOID",		"");
-define("W_NULL",    	"<null>");
-define("W_EX",          "-");
-define("W_FSS",			"___");
-define("W_BR",      	"<br/>");
-define("W_2BR",     	"<br/><br/>");
-define("W_PREFIX",		"worm_");
-define("W_EXACT",		" = ");
-define("W_LIKE",		" like ");
-define("W_OR",			" || ");
-define("W_SELECT",		" select ");
-define("W_FROM",		" from ");
-define("W_WHERE",		" where ");
-define("W_ORDER",		" order by ");
-define("W_LIMIT",		" limit ");
-define("W_SEP",         ":");
-define("W_US",          "_");
+define("W_SEP",			"-");
+define("W_COLON",       ":");
+define("W_SL",			"/");
 define("W_TAG_L",       "[");
 define("W_TAG_R",       "]");
 define("W_AWESOME_L",	"{{");
@@ -38,6 +20,8 @@ class WORM {
     var $content, $db, $translations, $l, $target, $uid, $template, $end_it,
         $database, $host, $username, $password, $charset, $collation, $table,
         $data, $fields,
+		$table_type = "fields",	// tabeli tüüp (salvestamine: kõik väljad eraldi või json tüüpi salvestus)
+		$save	= "blur",		// vormi default salvestustüüp
         $debug	= true;         // debug reziim
 
     // initsialiseeri kõik js poolt määratud muutujad
@@ -106,12 +90,12 @@ class WORM {
 
         // hangi vormi template ja uid
 
-        if (isset($this->data["worm"]) && substr_count($this->data["worm"], W_SEP))
-            list($this->template, $this->uid) = explode(W_SEP, $this->data["worm"]);
+        if (isset($this->data["worm"]) && substr_count($this->data["worm"], W_COLON))
+            list($this->template, $this->uid) = explode(W_COLON, $this->data["worm"]);
         else
             return false;
 
-        // kui on elemendi salvestamise või lugemise või kontrollimisega tegu, siis märgi see ära, et ei kuvataks template vormiosa
+        // kui on salvestamise või lugemise või valideerimisega tegu, siis ei tohi töödelda vormi kirjeldustest edasi
 
         if (isset($data["action"]) && $data["action"])
             $this->end_it = true;
@@ -179,13 +163,13 @@ class WORM {
 
             // kui ei leitud korrektset välja- ja tüübikirjeldust, siis otsi järgmist
 
-            if (stripos($markup, W_SEP) === false) {
+            if (stripos($markup, W_COLON) === false) {
                 $pos = $start + $length + $tag_r;
 
                 continue;
             }
 
-            list($field, $key) = explode(W_SEP, $markup);
+            list($field, $key) = explode(W_COLON, $markup);
 
             // asendusväärtus
 
@@ -194,36 +178,25 @@ class WORM {
             // kas korrektselt kirjeldatud vormielement eksisteerib?
 
             if ($field && $key && isset($this->fields[$field])) {
-                $id = $this->uid. W_US. $field;
+                $id = $this->uid. W_SEP. $field;
                 // lisa välja id
 
                 if ($key == "id") {
                     $value = $id;
                 } // väljakirjelduse id
                 elseif ($key == "descr") {
-                    $value = $id. W_US. "descr";
+                    $value = $id. W_SEP. "descr";
                 } // kui on väärtuse printimisega tegu, siis vaata kas on juba tabelis väärtus olemas
-                elseif ($key == "value") {
-                    $value = $this->get_value($field);
+                elseif ($key == "element") {
+                    // kuva väärtus ja lisa vormielement
 
-                    // kui tulemust tabelist ei leitud, siis lisa kirjelduses olev default (kui on seatud)
-
-                    if ($value === false && isset($this->fields[$field]["value"]))
-                        $value = "<u>". $this->fields[$field]["value"]. "</u>";
-                    elseif ($value)
-                        $value = "<u>". $value. "</u>";
-                    else
-                        $value = "<u class=\"w_empty\">- väärtustamata -</u>"; // ". $this->l->empty. "
-
-                    // paiguta väärtus div'i sisse ja lisa vormielement
-
-                    $value = "<div id=\"". $id. W_US. "value\" class=\"w_value\">". $value. "</div>";
-                    $value.= "<div id=\"". $id. W_US. "field\" class=\"w_field\">". $this->element($field). "</div>";
+                    $value = "<div id=\"". $id. W_SEP. "value\" class=\"w_value\">". $this->format_value($field). "</div>";
+                    $value.= "<div id=\"". $id. W_SEP. "field\" class=\"w_field\">". $this->element($field). "</div>";
                 } // teiste väljamuutujate asendamine
                 elseif (isset($this->fields[$field][$key])) {
                     $value = $this->fields[$field][$key];
 
-                    // kui on kohustuslik väli, siis '*' kirjeldusele
+                    // kui on kohustuslik väli, siis kuva '*'
 
                     if ($key == "title" && isset($this->fields[$field]["required"]) && $this->fields[$field]["required"])
                         $value .= "<span class=\"w_required\">*</span>";
@@ -261,17 +234,111 @@ class WORM {
         }
     }
 
+	// formaadi väärtus (kuvamiseks)
+
+	function format_value($field) {
+		$value = str_replace("\n", "<br/>", $this->get_value($field));
+
+		if ($this->fields[$field]["type"] == "radio") {
+			if ($value) {
+				if (isset($this->fields[$field]["values"][$value]) && $this->fields[$field]["values"][$value])
+					$value = $this->fields[$field]["values"][$value];
+			}
+		}
+		elseif ($this->fields[$field]["type"] == "checkbox") {
+			if ($value) {
+				$vals = [];
+
+				foreach (explode(W_COLON. W_COLON, $value) as $val) {
+					if (isset($this->fields[$field]["values"][$val]) && $this->fields[$field]["values"][$val])
+						$vals[] = $this->fields[$field]["values"][$val];
+				}
+
+				$value = implode(" ", $vals);
+			}
+		}
+
+		if ($value)
+			$value = "<u>". $value. "</u>";
+		else
+			$value = "<u class=\"w_empty\">". $this->l->txt_empty. "</u>"; // ". $this->l->empty. "
+
+		return $value;
+	}
+
     // vormielemendid
 
     function element($field) {
-        $el = W_VOID;
+        $el = $style = $class = $dialog = $empty = $save = W_VOID;
+        $id = $this->uid. W_SEP. $field. W_SEP. "element";
 
-        $id = $this->uid. W_US. $field. W_US. "element";
-        $value = $this->get_value($field);
+		// vormielemendi salvestustüüp
 
-        if ($this->fields[$field]["type"] == "text") {
-            $el = "<input id=\"". $id. "\" type=\"text\" value=\"\" class=\"w_element\">";
+		if (isset($this->fields[$field]["save"]) && $this->fields[$field]["save"]) {
+			if (in_array($this->fields[$field]["save"], [ "dialog", "blur", "change" ]))
+				$save = $this->fields[$field]["save"];
+			else
+				$save = $this->save;
+		}
+		else {
+			$save = $this->save;
+		}
+
+		// dialoogi puhul lisa valikud
+
+		if ($save == "dialog") {
+			$dialog = " <span class=\"fa fa-check-circle w_save\"></span>";
+			$dialog.= " <span class=\"fa fa-times-circle w_cancel\"></span>";
+		}
+
+		$class = " class=\"w_". $save;
+
+		// kui on määratud kirjelduses lisaklasse
+
+		if (isset($this->fields[$field]["class"]) && $this->fields[$field]["class"])
+			$class .= " ". $this->fields[$field]["class"];
+
+		$class .= "\"";
+
+		// kui on lisatud stiil
+
+		if (isset($this->fields[$field]["style"]) && $this->fields[$field]["style"])
+			$style = " style=\"". $this->fields[$field]["style"]. "\"";
+
+		switch ($this->fields[$field]["type"]) {
+			case "text":
+				$el = "<input id=\"". $id. "\" type=\"text\"". $class. $style. " value=\"\">";
+
+				break;
+
+			case "textarea":
+				$el = "<textarea id=\"". $id. "\"". $class. $style. "></textarea>";
+
+				break;
+
+			case "radio":
+				foreach ($this->fields[$field]["values"] as $value => $descr)
+					$el .= "<input id=\"". $id. W_SEP. $value. "\" name=\"". $id. "\" type=\"radio\" ". $class. $style. " value=\"". $value. "\"> ". $descr;
+
+				break;
+
+			case "checkbox":
+				foreach ($this->fields[$field]["values"] as $value => $descr)
+					$el .= "<input id=\"". $id. W_SEP. $value. "\" name=\"". $id. "[]\" type=\"checkbox\" ". $class. $style. " value=\"". $value. "\"> ". $descr. " ";
+
+				break;
+
+			default:
+
+				break;
         }
+
+		// kui on vormielemendi kustutamine lubatud
+
+		if ($save != "blur" && ($this->fields[$field]["type"] == "text" || $this->fields[$field]["type"] == "textarea"))
+			$empty = "<span class=\"fa fa-times-circle w_erase\"></span>";
+
+		$el .= $empty. $dialog;
 
         return $el;
     }
@@ -279,26 +346,34 @@ class WORM {
     // lae väärtus
 
     function load_element($element) {
-        list($uid, $field) = explode("_", substr($element["element"], 1));
+        list($uid, $field) = explode(W_SEP, substr($element["element"], 1));
 
         // tagasta väärtus
 
-        $this->content = $this->get_value($field);
+		$this->content = $this->get_value($field);
     }
 
     // salvesta element
 
     function save_element($element) {
-        list($uid, $field) = explode("_", substr($element["element"], 1));
+        list($uid, $field) = explode(W_SEP, substr($element["element"], 1));
 
-        // kontrolli, kas selle elemendi puhul on soovitud meetodiga salvestamine lubatud
+		if (isset($element["content"])) {
+			// kontrolli, kas selle elemendi puhul on soovitud meetodiga salvestamine lubatud
 
-        if (!isset($this->fields[$field]["save"]) || in_array($element["method"], $this->fields[$field]["save"]))
-            $this->set_value($field, $element["content"]);
+        	if (!isset($this->fields[$field]["save"]) || $element["method"] == $this->fields[$field]["save"]) {
+				// kui on massiiv (checkboxide väärtused)
+
+				if (is_array($element["content"]))
+					$element["content"] = implode(W_COLON. W_COLON, $element["content"]);
+
+            	$this->set_value($field, $element["content"]);
+			}
+		}
 
         // tagasta väärtus
 
-        $this->content = "<u>". $this->get_value($field). "</u>";
+        $this->content = $this->format_value($field);
     }
 
     // tee JS tulev sisend turvaliseks
