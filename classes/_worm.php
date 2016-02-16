@@ -35,7 +35,7 @@ define("W_AWESOME_R",	"}}");
 class WORM {
     // kõik parameetrid (nb! need default'id kirjutatakse üle tabeli kirjeldusfaili ja ka worm.js poolt tulevate väärtustega üle)
 
-    var $content, $db, $translations, $l, $target, $uid, $template, $partial_parse,
+    var $content, $db, $translations, $l, $target, $uid, $template, $end_it,
         $database, $host, $username, $password, $charset, $collation, $table,
         $data, $fields,
         $debug	= true;         // debug reziim
@@ -71,8 +71,13 @@ class WORM {
 
         // elemendi salvestamine
 
-        if (isset($data["save"]) && $data["save"])
-            $this->save_element($data);
+        if (isset($data["action"])) {
+            switch ($data["action"]) {
+                case "load": $this->load_element($data); break;
+                case "save": $this->save_element($data); break;
+                default: break;
+            }
+        }
     }
 
     // init
@@ -108,8 +113,8 @@ class WORM {
 
         // kui on elemendi salvestamise või lugemise või kontrollimisega tegu, siis märgi see ära, et ei kuvataks template vormiosa
 
-        if (isset($data["save"]) && $data["save"])
-            $this->partial_parse = true;
+        if (isset($data["action"]) && $data["action"])
+            $this->end_it = true;
 
         // kirjuta default'id JS omadega üle (ja puhasta input)
 
@@ -265,16 +270,26 @@ class WORM {
         $value = $this->get_value($field);
 
         if ($this->fields[$field]["type"] == "text") {
-            $el = "<input id=\"". $id. "\" type=\"text\" value=\"". $value. "\" class=\"w_element\">";
+            $el = "<input id=\"". $id. "\" type=\"text\" value=\"\" class=\"w_element\">";
         }
 
         return $el;
     }
 
+    // lae väärtus
+
+    function load_element($element) {
+        list($uid, $field) = explode("_", substr($element["element"], 1));
+
+        // tagasta väärtus
+
+        $this->content = $this->get_value($field);
+    }
+
     // salvesta element
 
     function save_element($element) {
-        list($uid, $field) = explode("_", substr($element["save"], 1));
+        list($uid, $field) = explode("_", substr($element["element"], 1));
 
         // kontrolli, kas selle elemendi puhul on soovitud meetodiga salvestamine lubatud
 

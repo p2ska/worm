@@ -23,9 +23,12 @@ var worm_url = "worm.php";
                 var element_id = id[0] + "_" + id[1] + "_element";
 
                 $(value_id).hide();
+
+                load_element(worm, data, $(this));
+
                 $(field_id).show();
                 $(element_id).focus();
-                $(element_id)[0].setSelectionRange(10000, 10000);
+                //$(element_id)[0].setSelectionRange(10000, 10000);
             });
 
             // salvesta vormielement fookuse kadumise korral
@@ -65,6 +68,29 @@ var worm_url = "worm.php";
             });
         }
 
+        // lae element
+
+        function load_element(worm, data, el) {
+            var element_id = "#" + $(el).prop("id");
+            var id = element_id.split("_");
+            var field_id = id[0] + "_" + id[1] + "_field";
+            var value_id = id[0] + "_" + id[1] + "_value";
+
+            $.ajax({
+                url: worm_url,
+                data: {
+                    worm: {
+                        target: worm,
+                        data: data,
+                        action: "load",
+                        element: element_id
+                    }
+                }
+            }).done(function(result) {
+                $(field_id).val(result);
+            });
+        }
+
         // salvesta element
 
         function save_element(worm, data, el, method) {
@@ -83,7 +109,19 @@ var worm_url = "worm.php";
             else {
                 $(value_id).html("").show();
 
-                $.ajax({ url: worm_url, data: { worm: { target: worm, data: data, save: element_id, method: method, content: $(element_id).val() } } }).done(function(result) {
+                $.ajax({
+                    url: worm_url,
+                    data: {
+                        worm: {
+                            target: worm,
+                            data: data,
+                            action: "save",
+                            method: method,
+                            element: element_id,
+                            content: $(element_id).val()
+                        }
+                    }
+                }).done(function(result) {
                     $(value_id).html(result);
 
                     last_save = Date.now();

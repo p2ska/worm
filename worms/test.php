@@ -13,7 +13,7 @@ $this->fields = [
 // id:      [uid] + "_" + [field]
 // descr:   [uid] + "_" + [field] + "_descr"
 
-if ($this->partial_parse)
+if ($this->end_it)
     return;
 
 ?>
