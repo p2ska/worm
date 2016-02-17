@@ -2,7 +2,7 @@ var worm_url = "worm.php";
 
 (function($) {
     $.fn.worm = function(targets) {
-        var current_element, value_id, element_id, field_id,
+        var element_obj, element_type, value_id, element_id, field_id,
 			last_save = false,
             debug = false;
 
@@ -27,7 +27,7 @@ var worm_url = "worm.php";
 				$(field_id).show();
                 $(element_id).focus();
 
-				if ($(element_id)[0])
+				if ($(element_id)[0] && element_type != "select")
                 	$(element_id)[0].setSelectionRange(10000, 10000);
             });
 
@@ -44,7 +44,7 @@ var worm_url = "worm.php";
             $("#" + worm).on("click", ".w_save", function() {
 				get_id($(this).closest("div"));
 
-				save_element(worm, data, current_element, "dialog");
+				save_element(worm, data, element_obj, "dialog");
             });
 
             // ära salvesta vormielementi dialoogi korral
@@ -69,14 +69,15 @@ var worm_url = "worm.php";
             });
         });
 
-		// hangi id'd
+        // hangi id'd
 
 		function get_id(element) {
             var id = element.prop("id").split("-");
 
-			current_element = element;
+			element_obj = element;
+            element_type = $("#" + id[0] + "-" + id[1]).data("type");
 
-			value_id = "#" + id[0] + "-" + id[1] + "-value";
+            value_id = "#" + id[0] + "-" + id[1] + "-value";
             field_id = "#" + id[0] + "-" + id[1] + "-field";
             element_id = "#" + id[0] + "-" + id[1] + "-element";
 		}
@@ -84,8 +85,20 @@ var worm_url = "worm.php";
         // kuva vorm
 
         function output(worm, data) {
-            $.ajax({ url: worm_url, data: { worm: { target: worm, data: data } } }).done(function(content) {
-                $("#" + worm).html(content);
+            $.ajax({ url: worm_url, data: { worm: { target: worm, data: data } } }).done(function(result) {
+                $("#" + worm).html(result);
+
+                $("#" + worm + "-field6-element").datepicker({
+                    startDate: "01.01.2013",
+                    endDate: "31.12.2020",
+                    language: "et",
+                    autoclose: true,
+                    keyboardNavigation: false,
+                    calendarWeeks: false,
+                    todayHighlight: true,
+                    weekStart: 1,
+                    format: "dd.mm.yyyy"
+                });
             });
         }
 
@@ -105,7 +118,18 @@ var worm_url = "worm.php";
                     }
                 }
             }).done(function(result) {
-                $(element_id).val(result);
+                var results = jQuery.parseJSON(result);
+
+                // väärtusta väljad
+
+                $.each(results, function(el, value) {
+                    console.log(el + ":" + value);
+
+                    if (element_type == "checkbox" || element_type == "radio")
+                        $(el).prop("checked", true);
+                    else
+                        $(el).val(value);
+                });
             });
         }
 
@@ -124,15 +148,14 @@ var worm_url = "worm.php";
             else {
                 $(value_id).html("").show();
 
-				var content;
-				var type = $(element).attr("type");
+				var value;
 
-				if (type == "radio")
-					content = $("input[name=" + element_id.substr(1) + "]:checked").val();
-				else if (type == "checkbox")
-					content = $("input[name='" + element_id.substr(1) + "[]']:checked").map(function() { return this.value }).get();
+				if (element_type == "radio")
+					value = $("input[name=" + element_id.substr(1) + "]:checked").val();
+				else if (element_type == "checkbox")
+					value = $("input[name='" + element_id.substr(1) + "[]']:checked").map(function() { return this.value }).get();
 				else
-					content = $(element_id).val();
+					value = $(element_id).val();
 
                 $.ajax({
                     url: worm_url,
@@ -143,7 +166,7 @@ var worm_url = "worm.php";
                             action: "save",
                             method: method,
                             element: element_id,
-                            content: content
+                            value: value
                         }
                     }
                 }).done(function(result) {

@@ -5,12 +5,12 @@ $this->table_type = "fields"; // "json";
 //$this->save = "dialog";
 
 $this->fields = [
-    "field1" => [ "title" => "text:", "type" => "text", "typeahead" => true, "style" => "width: 400px", "save" => "dialog" ],
+    "field1" => [ "title" => "text:", "type" => "text", "style" => "width: 400px", "save" => "dialog", "typeahead" => true ],
     "field2" => [ "title" => "textarea:", "type" => "textarea", "style" => "width: 400px; height: 100px", "required" => true ],
     "field3" => [ "title" => "radio:", "type" => "radio", "values" => [ 1 => "esimene", 2 => "teine" ], "save" => "blur" ],
     "field4" => [ "title" => "checkbox:", "type" => "checkbox", "values" => [ 1 => "üks", 2 => "kaks" ], "save" => "blur" ],
-    "field5" => [ "title" => "select:", "type" => "select", "values" => [ 1 => "first", 2 => "second" ] ],
-    "field6" => [ "title" => "datepicker:", "type" => "datepicker" ],
+    "field5" => [ "title" => "select:", "type" => "select", "values" => [ "" => "--", 1 => "first", 2 => "second" ], "external-data" => "" ],
+    "field6" => [ "title" => "datepicker:", "type" => "date" ],
 ];
 
 if ($this->end_it)
@@ -31,4 +31,7 @@ if ($this->end_it)
 </div>
 <div class="w_group">
     <div id="[field5:descr]" class="w_descr">[field5:title]</div><div id="[field5:id]" class="w_content">[field5:element]</div>
+</div>
+<div class="w_group">
+    <div id="[field6:descr]" class="w_descr">[field6:title]</div><div id="[field6:id]" class="w_content">[field6:element]</div>
 </div>

@@ -7,6 +7,7 @@ define("W_DOTS",		"/\.+/");
 define("W_DOT",			".");
 define("W_VOID",		"");
 define("W_SEP",			"-");
+define("W_EX",          "::");
 define("W_COLON",       ":");
 define("W_SL",			"/");
 define("W_TAG_L",       "[");
@@ -59,6 +60,7 @@ class WORM {
             switch ($data["action"]) {
                 case "load": $this->load_element($data); break;
                 case "save": $this->save_element($data); break;
+
                 default: break;
             }
         }
@@ -179,10 +181,11 @@ class WORM {
 
             if ($field && $key && isset($this->fields[$field])) {
                 $id = $this->uid. W_SEP. $field;
-                // lisa välja id
+
+                // lisa elemendi id ja tüüp
 
                 if ($key == "id") {
-                    $value = $id;
+                    $value = $id. "\" data-type=\"". $this->fields[$field]["type"];
                 } // väljakirjelduse id
                 elseif ($key == "descr") {
                     $value = $id. W_SEP. "descr";
@@ -239,7 +242,7 @@ class WORM {
 	function format_value($field) {
 		$value = str_replace("\n", "<br/>", $this->get_value($field));
 
-		if ($this->fields[$field]["type"] == "radio") {
+		if ($this->fields[$field]["type"] == "radio" || $this->fields[$field]["type"] == "select") {
 			if ($value) {
 				if (isset($this->fields[$field]["values"][$value]) && $this->fields[$field]["values"][$value])
 					$value = $this->fields[$field]["values"][$value];
@@ -249,7 +252,7 @@ class WORM {
 			if ($value) {
 				$vals = [];
 
-				foreach (explode(W_COLON. W_COLON, $value) as $val) {
+				foreach (explode(W_EX, $value) as $val) {
 					if (isset($this->fields[$field]["values"][$val]) && $this->fields[$field]["values"][$val])
 						$vals[] = $this->fields[$field]["values"][$val];
 				}
@@ -298,6 +301,11 @@ class WORM {
 		if (isset($this->fields[$field]["class"]) && $this->fields[$field]["class"])
 			$class .= " ". $this->fields[$field]["class"];
 
+        // lisa datepickeri klass
+
+        if ($this->fields[$field]["type"] == "date")
+            $class .= " w_date";
+
 		$class .= "\"";
 
 		// kui on lisatud stiil
@@ -328,7 +336,22 @@ class WORM {
 
 				break;
 
-			default:
+			case "select":
+                $el .= "<select id=\"". $id. "\"". $class. $style. ">";
+
+				foreach ($this->fields[$field]["values"] as $value => $descr)
+					$el .= "<option value=\"". $value. "\">". $descr. "</option>";
+
+                $el .= "</select>";
+
+				break;
+
+			case "date":
+				$el = "<input id=\"". $id. "\" type=\"text\"". $class. $style. " value=\"\">";
+
+				break;
+
+            default:
 
 				break;
         }
@@ -343,33 +366,44 @@ class WORM {
         return $el;
     }
 
-    // lae väärtus
+    // vormielemendi väärtustamine
 
     function load_element($element) {
         list($uid, $field) = explode(W_SEP, substr($element["element"], 1));
 
-        // tagasta väärtus
+        $result = W_VOID;
+        $value = $this->get_value($field);
 
-		$this->content = $this->get_value($field);
+        if ($this->fields[$field]["type"] == "checkbox" || $this->fields[$field]["type"] == "radio") {
+            foreach (explode(W_EX, $value) as $val)
+                if (isset($this->fields[$field]["values"][$val]) && $this->fields[$field]["values"][$val])
+                    $result["#". $this->uid. W_SEP. $field. W_SEP. "element". W_SEP. $val] = "checked";
+        }
+        else {
+            $result["#". $this->uid. W_SEP. $field. W_SEP. "element"] = $value;
+        }
+
+		$this->content = json_encode($result);
     }
 
-    // salvesta element
+    // salvesta vormielemendi väärtus
 
     function save_element($element) {
         list($uid, $field) = explode(W_SEP, substr($element["element"], 1));
 
-		if (isset($element["content"])) {
-			// kontrolli, kas selle elemendi puhul on soovitud meetodiga salvestamine lubatud
+        if (!isset($element["value"]))
+            $element["value"] = W_VOID;
 
-        	if (!isset($this->fields[$field]["save"]) || $element["method"] == $this->fields[$field]["save"]) {
-				// kui on massiiv (checkboxide väärtused)
+		// kontrolli, kas selle elemendi puhul on soovitud meetodiga salvestamine lubatud
 
-				if (is_array($element["content"]))
-					$element["content"] = implode(W_COLON. W_COLON, $element["content"]);
+    	if (!isset($this->fields[$field]["save"]) || $element["method"] == $this->fields[$field]["save"]) {
+            // kui on massiiv (checkboxide väärtused)
 
-            	$this->set_value($field, $element["content"]);
-			}
-		}
+			if (is_array($element["value"]))
+				$element["value"] = implode(W_EX, $element["value"]);
+
+            $this->set_value($field, $element["value"]);
+        }
 
         // tagasta väärtus
 
