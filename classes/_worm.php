@@ -60,6 +60,7 @@ class WORM {
             switch ($data["action"]) {
                 case "load": $this->load_element($data); break;
                 case "save": $this->save_element($data); break;
+                case "validate": $this->validate($data); break;
 
                 default: break;
             }
@@ -196,6 +197,11 @@ class WORM {
                     $value = "<div id=\"". $id. W_SEP. "value\" class=\"w_value\">". $this->format_value($field). "</div>";
                     $value.= "<div id=\"". $id. W_SEP. "field\" class=\"w_field\">". $this->element($field). "</div>";
                 } // teiste väljamuutujate asendamine
+                elseif ($key == "button") {
+                    // kuva väärtus ja lisa vormielement
+
+                    $value.= "<button id=\"". $id. W_SEP. "button\" class=\"w_button\">". $this->format_value($field). "</button>";
+                } // teiste väljamuutujate asendamine
                 elseif (isset($this->fields[$field][$key])) {
                     $value = $this->fields[$field][$key];
 
@@ -224,6 +230,9 @@ class WORM {
         else {
             $obj = $this->db->get_obj();
 
+            if ($obj->value == NULL)
+                $obj->value = false;
+
             return $obj->value;
         }
     }
@@ -242,11 +251,11 @@ class WORM {
 	function format_value($field) {
 		$value = str_replace("\n", "<br/>", $this->get_value($field));
 
-		if ($this->fields[$field]["type"] == "radio" || $this->fields[$field]["type"] == "select") {
-			if ($value) {
-				if (isset($this->fields[$field]["values"][$value]) && $this->fields[$field]["values"][$value])
-					$value = $this->fields[$field]["values"][$value];
-			}
+        if (in_array($this->fields[$field]["type"], [ "button", "radio", "select" ])) {
+            if (isset($this->fields[$field]["values"][$value]) && $this->fields[$field]["values"][$value])
+				$value = $this->fields[$field]["values"][$value];
+            elseif (isset($this->fields[$field]["value"]) && $this->fields[$field]["value"])
+                $value = $this->fields[$field]["value"];
 		}
 		elseif ($this->fields[$field]["type"] == "checkbox") {
 			if ($value) {
@@ -261,10 +270,12 @@ class WORM {
 			}
 		}
 
-		if ($value)
+        if ($this->fields[$field]["type"] == "button")
+            $value = $value;
+		elseif ($value)
 			$value = "<u>". $value. "</u>";
 		else
-			$value = "<u class=\"w_empty\">". $this->l->txt_empty. "</u>"; // ". $this->l->empty. "
+			$value = "<u class=\"w_empty\">". $this->l->txt_empty. "</u>";
 
 		return $value;
 	}
@@ -277,15 +288,10 @@ class WORM {
 
 		// vormielemendi salvestustüüp
 
-		if (isset($this->fields[$field]["save"]) && $this->fields[$field]["save"]) {
-			if (in_array($this->fields[$field]["save"], [ "dialog", "blur", "change" ]))
-				$save = $this->fields[$field]["save"];
-			else
-				$save = $this->save;
-		}
-		else {
+		if (isset($this->fields[$field]["save"]) && $this->fields[$field]["save"])
+            $save = $this->fields[$field]["save"];
+		else
 			$save = $this->save;
-		}
 
 		// dialoogi puhul lisa valikud
 
@@ -294,19 +300,20 @@ class WORM {
 			$dialog.= " <span class=\"fa fa-times-circle w_cancel\"></span>";
 		}
 
-		$class = " class=\"w_". $save;
+        if ($save)
+            $class = " class=\"w_". $save;
 
 		// kui on määratud kirjelduses lisaklasse
 
-		if (isset($this->fields[$field]["class"]) && $this->fields[$field]["class"])
-			$class .= " ". $this->fields[$field]["class"];
+		if (isset($this->fields[$field]["class"]) && $this->fields[$field]["class"]) {
+            if ($class)
+                $class .= " ". $this->fields[$field]["class"];
+            else
+                $class .= " class=\"". $this->fields[$field]["class"];
+        }
 
-        // lisa datepickeri klass
-
-        if ($this->fields[$field]["type"] == "date")
-            $class .= " w_date";
-
-		$class .= "\"";
+        if ($class)
+            $class .= "\"";
 
 		// kui on lisatud stiil
 
@@ -347,7 +354,12 @@ class WORM {
 				break;
 
 			case "date":
-				$el = "<input id=\"". $id. "\" type=\"text\"". $class. $style. " value=\"\">";
+				$el = "<input id=\"". $id. "\" type=\"text\"". $class. $style. " value=\"\" readonly>";
+
+				break;
+
+			case "status":
+				$el = "<input id=\"". $id. "\" type=\"text\"". $class. $style. " value=\"\" readonly>";
 
 				break;
 
@@ -408,6 +420,33 @@ class WORM {
         // tagasta väärtus
 
         $this->content = $this->format_value($field);
+    }
+
+    // valideeri vorm
+
+    function validate($data) {
+        list($uid, $method) = explode(W_SEP, substr($data["method"], 1));
+
+        if ($method == "status") {
+            // mis seisus vorm on?
+
+            foreach ($this->fields as $field => $element) {
+                if ($element["type"] == "button")
+                    continue;
+
+                // hangi väärtus
+
+                $value = $this->get_value($field);
+
+                // kas väli on kohustuslik
+
+                if (isset($element["required"]) && $element["required"]) {
+
+                }
+            }
+        }
+        elseif ($method == "reset") {
+        }
     }
 
     // tee JS tulev sisend turvaliseks

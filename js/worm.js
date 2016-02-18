@@ -39,7 +39,15 @@ var worm_url = "worm.php";
 				$(element_id).val("").focus();
             });
 
-			// salvesta vormielement dialoogi korral
+			// salvesta datepickeri puhul
+
+            $("#" + worm).on("change", ".w_date", function() {
+				get_id($(this));
+
+                save_element(worm, data, element_obj, "date");
+            });
+
+            // salvesta vormielement dialoogi korral
 
             $("#" + worm).on("click", ".w_save", function() {
 				get_id($(this).closest("div"));
@@ -56,7 +64,14 @@ var worm_url = "worm.php";
 				$(value_id).show();
             });
 
-			// salvesta vormielement fookuse kadumise korral
+            // nupuloogika
+
+            $("#" + worm).on("click", ".w_button", function() {
+                get_id($(this));
+                check_worm(worm, data, field_id);
+            });
+
+            // salvesta vormielement fookuse kadumise korral
 
             $("#" + worm).on("focusout", ".w_blur", function() {
                 save_element(worm, data, $(this), "blur");
@@ -69,7 +84,7 @@ var worm_url = "worm.php";
             });
         });
 
-        // hangi id'd
+        // hangi id'd ja elemendi tüüp
 
 		function get_id(element) {
             var id = element.prop("id").split("-");
@@ -85,19 +100,27 @@ var worm_url = "worm.php";
         // kuva vorm
 
         function output(worm, data) {
-            $.ajax({ url: worm_url, data: { worm: { target: worm, data: data } } }).done(function(result) {
+            $.ajax({
+                url: worm_url,
+                data: {
+                    worm: {
+                        target: worm,
+                        data: data
+                    }
+                }
+            }).done(function(result) {
                 $("#" + worm).html(result);
 
-                $("#" + worm + "-field6-element").datepicker({
-                    startDate: "01.01.2013",
-                    endDate: "31.12.2020",
-                    language: "et",
-                    autoclose: true,
+                $(".w_date").datepicker({
+                    startDate:          "01.01.2013",
+                    endDate:            "31.12.2020",
+                    language:           "et",
+                    autoclose:          true,
                     keyboardNavigation: false,
-                    calendarWeeks: false,
-                    todayHighlight: true,
-                    weekStart: 1,
-                    format: "dd.mm.yyyy"
+                    calendarWeeks:      false,
+                    todayHighlight:     true,
+                    weekStart:          1,
+                    format:             "dd.mm.yyyy"
                 });
             });
         }
@@ -123,10 +146,10 @@ var worm_url = "worm.php";
                 // väärtusta väljad
 
                 $.each(results, function(el, value) {
-                    console.log(el + ":" + value);
-
                     if (element_type == "checkbox" || element_type == "radio")
                         $(el).prop("checked", true);
+                    else if (element_type == "select")
+                        $(el).prop("selected", true);
                     else
                         $(el).val(value);
                 });
@@ -157,6 +180,8 @@ var worm_url = "worm.php";
 				else
 					value = $(element_id).val();
 
+                console.log(element_id + ":" + value);
+
                 $.ajax({
                     url: worm_url,
                     data: {
@@ -175,6 +200,24 @@ var worm_url = "worm.php";
                     last_save = Date.now();
                 });
             }
+        }
+
+        // vormi valideerimine/reset/sulgemine
+
+        function check_worm(worm, data, method) {
+            $.ajax({
+                url: worm_url,
+                data: {
+                    worm: {
+                        target: worm,
+                        data: data,
+                        action: "validate",
+                        method: method,
+                    }
+                }
+            }).done(function(result) {
+                alert(result);
+            });
         }
 
         // kasutaja andmed

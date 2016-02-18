@@ -12,6 +12,6 @@
 </body>
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/datepicker.min.js"></script>
-<!--<script type="text/javascript" src="https://static.ttu.ee/portal/ext/datepicker/1.3.0/locales/bootstrap-datepicker.et.js"></script>-->
+<script type="text/javascript" src="https://static.ttu.ee/portal/ext/datepicker/1.3.0/locales/bootstrap-datepicker.et.js"></script>
 <script type="text/javascript" src="js/worm.js"></script>
 </html>
