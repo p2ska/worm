@@ -358,11 +358,6 @@ class WORM {
 
 				break;
 
-			case "status":
-				$el = "<input id=\"". $id. "\" type=\"text\"". $class. $style. " value=\"\" readonly>";
-
-				break;
-
             default:
 
 				break;
