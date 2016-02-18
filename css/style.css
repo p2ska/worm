@@ -1,0 +1,91 @@
+html, body, th, td {
+	font-family: "open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 15px;
+	color: #000;
+}
+
+.w_erase, .w_save, .w_cancel {
+	color: #0a0;
+	position: relative;
+	cursor: pointer;
+}
+
+.w_erase {
+	left: -20px;
+	color: #aaa;
+}
+
+.w_cancel {
+	color: #a00;
+}
+
+.w_erase:hover {
+	color: #666;
+}
+
+.w_save:hover {
+	color: #0f0;
+}
+
+.w_cancel:hover {
+	color: #f00;
+}
+
+.w_group {
+    margin: 10px;
+}
+
+.w_descr {
+    float: left;
+    width: 100px;
+    margin: 7px;
+    clear: both;
+}
+
+.w_content {
+    float: left;
+}
+
+.w_value > u {
+    cursor: pointer;
+    color: #0af;
+    text-decoration: none;
+    border-bottom: 1px dashed #0af;
+}
+
+.w_value > u:hover {
+    color: #08d;
+    border-bottom: 1px solid #08d;
+}
+
+.w_field {
+    display: none;
+}
+
+.w_failed {
+    color: #f00;
+    border-color: #f00;
+}
+
+.w_empty {
+    color: #f00 !important;
+}
+
+.w_required {
+    color: #f00;
+    font-weight: bold;
+    padding-left: 2px;
+}
+
+.w_element {
+    padding: 5px;
+    border: 1px solid #fff;
+}
+
+.w_element:hover {
+    border: 1px solid #0ff;
+}
+
+.w_element:focus {
+    border: 1px solid #0ff;
+}
